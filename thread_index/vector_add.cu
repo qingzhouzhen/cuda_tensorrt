@@ -46,7 +46,21 @@ int main()
     dim3 blockSize(256);
     dim3 gridSize((N + blockSize.x - 1) / blockSize.x);
     // 执行kernel
+
+    cudaEvent_t start, stop;
+    cudaEventCreate(&start);    
+    cudaEventCreate(&stop); 
+    cudaEventRecord(start); 
+
     add <<< gridSize, blockSize >>>(d_x, d_y, d_z, N);
+
+    cudaEventRecord(stop);               
+    cudaEventSynchronize(stop);             
+    float time = 0;
+    cudaEventElapsedTime(&time, start, stop); 
+    printf("Kernel execution time: %f milliseconds\n", time);
+    cudaEventDestroy(start);                
+    cudaEventDestroy(stop);
 
     // 将device得到的结果拷贝到host
     cudaMemcpy((void*)z, (void*)d_z, nBytes, cudaMemcpyDeviceToHost);
